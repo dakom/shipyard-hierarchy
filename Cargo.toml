@@ -1,0 +1,8 @@
+[package]
+name = "shipyard_hierarchy"
+version = "0.1.0"
+authors = ["David Komer <david.komer@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+shipyard = { git= "https://github.com/leudz/shipyard.git"}
