@@ -1,4 +1,4 @@
-use shipyard::prelude::*;
+use shipyard::*;
 use shipyard_hierarchy::*;
 use std::collections::HashMap;
 
@@ -6,7 +6,7 @@ use std::collections::HashMap;
 fn test_hierarchy() {
     let world = World::new();
 
-    let mut storages = world.borrow::<(EntitiesMut, &mut Parent, &mut Child)>();
+    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>)>();
 
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);
 
@@ -56,7 +56,7 @@ fn test_hierarchy() {
 fn test_sorting_depth_first() {
     let world = World::new();
 
-    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesMut, &mut Parent, &mut Child), &mut usize)>();
+    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>), ViewMut<usize>)>();
 
     let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
 
@@ -137,7 +137,7 @@ fn create_world_tree() -> (World, TestEntities, HashMap<EntityId, &'static str>)
     let mut labels = HashMap::<EntityId, &'static str>::new();
 
     let entities = {
-        let mut hierarchy = world.borrow::<(EntitiesMut, &mut Parent, &mut Child)>();
+        let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>)>();
 
         let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
         let entities = &mut hierarchy.0;
@@ -189,7 +189,7 @@ fn test_hierarchy_tree() {
     let (world, (root, a,b,c,d,e,f,g,h,i,j,k,l,m,n), _) = create_world_tree();
 
     {
-        let (parent_storage, child_storage) = world.borrow::<(&Parent, &Child)>();
+        let (parent_storage, child_storage) = world.borrow::<(View<Parent>, View<Child>)>();
 
         let storages = (&parent_storage, &child_storage);
         assert!(storages.descendants_depth_first(root).eq([a,d,h,l,i,e,b,c,f,g,j,m,n,k].iter().cloned()));
@@ -202,7 +202,7 @@ fn test_hierarchy_tree() {
 fn test_debug_print() {
     let world = World::new();
 
-    let mut hierarchy = world.borrow::<(EntitiesMut, &mut Parent, &mut Child)>();
+    let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>)>();
 
     let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
     let entities = &mut hierarchy.0;
@@ -230,7 +230,7 @@ fn test_debug_print() {
 
     {
 
-        let (parent_storage, child_storage) = world.borrow::<(&Parent, &Child)>();
+        let (parent_storage, child_storage) = world.borrow::<(View<Parent>, View<Child>)>();
         let storages = (&parent_storage, &child_storage);
         assert_eq!(EXPECTED_DEBUG_TREE_2, format!("{:?}", storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string())));
         //println!("{:?}", storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string()));

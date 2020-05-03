@@ -3,7 +3,7 @@ mod iter;
 mod debug;
 mod components;
 
-use shipyard::prelude::*;
+use shipyard::*;
 
 pub use self::iter::*;
 pub use self::debug::*;
@@ -65,7 +65,7 @@ impl HierarchyMut for HierarchyStoragesMut<'_, '_> {
         // the entity we want to attach might already be attached to another parent
 
         // either the designated parent already has a Parent component – and thus one or more children
-        if let Ok(p) = parent_storage.get(parent) {
+        if let Ok(p) = parent_storage.try_get(parent) {
             // increase the parent's children counter
             p.num_children += 1;
 
@@ -159,7 +159,7 @@ impl HierarchyMut for HierarchyStoragesMut<'_, '_> {
 fn test_detach() {
     let world = World::new();
 
-    let mut storages = world.borrow::<(EntitiesMut, &mut Parent, &mut Child)>();
+    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>)>();
 
     let root1 = storages.0.add_entity((), ());
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);

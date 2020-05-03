@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use shipyard::prelude::*;
+use shipyard::*;
 use super::*;
 /*
     The type signatures here are a bit intense. Some help from leudz:
@@ -21,9 +21,9 @@ pub trait HierarchyIterDebug<'a, P, C>
 
 impl<'a, P, C> HierarchyIterDebug<'a, P, C> for (P, C)
 where
-    P: GetComponent<Out = &'a Parent> + Copy + IntoIter,
+    P: Get<Out = &'a Parent> + Copy + IntoIter,
     <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
-    C: GetComponent<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child> + Copy,
 {
     fn debug_tree<F>(&'a self, root: EntityId, get_label:F) -> DebugHierarchyTree<'a, P, C, F> 
         where F: Fn(EntityId) -> String 
@@ -37,9 +37,9 @@ pub struct DebugHierarchyTree<'a, P, C, F>(&'a (P, C), EntityId, F)
 
 impl<'a, P, C, F> std::fmt::Debug for DebugHierarchyTree<'a, P, C, F>
 where
-    P: GetComponent<Out = &'a Parent> + Copy + IntoIter,
+    P: Get<Out = &'a Parent> + Copy + IntoIter,
     <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
-    C: GetComponent<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child> + Copy,
     F: Fn(EntityId) -> String 
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -64,7 +64,7 @@ where
 
         write!(f, "{}\n", get_label(root))?;
         for entity_id in (parent_storage, child_storage).descendants_depth_first(root) {
-            let parent = child_storage.get(entity_id).unwrap().parent;
+            let parent = child_storage.try_get(entity_id).unwrap().parent;
             if !depth_map.contains_key(&parent) {
                 depth += 1;
                 depth_map.insert(parent, depth);

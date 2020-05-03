@@ -1,6 +1,6 @@
 [package]
 name = "shipyard_hierarchy"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["David Komer <david.komer@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -11,12 +11,11 @@ readme = "README.md"
 repository = "https://github.com/dakom/shipyard-hierarchy"
 
 [dependencies]
-shipyard = { version = "^0.3", default-features = false}
+shipyard = { version = "^0.4", default-features = false}
 
 [features]
 default = ["shipyard/default"]
 parallel = ["shipyard/parallel"]
-proc = ["shipyard/proc"]
 non_send = ["shipyard/non_send"]
 non_sync = ["shipyard/non_sync"]
 std = ["shipyard/std"]
