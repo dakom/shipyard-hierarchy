@@ -9,7 +9,7 @@ pub use self::iter::*;
 pub use self::debug::*;
 pub use self::components::*;
 
-pub trait HierarchyMut {
+pub trait HierarchyMut<T> {
     // Attaches an entity as a child to a given parent entity.
     fn attach(&mut self, id: EntityId, parent: EntityId);
 
@@ -26,13 +26,19 @@ pub trait HierarchyMut {
         where F: FnMut(&EntityId, &EntityId) -> std::cmp::Ordering;
 }
 
+
 //the storages we'll impl Hierarchy on
-pub type HierarchyStoragesMut<'a, 'b> = (&'b mut EntitiesViewMut<'a>, &'b mut ViewMut<'a, Parent>, &'b mut ViewMut<'a, Child>);
+// 'a is the reference of the view you take to make HierarchyStorageMut
+// 'b is the scope of the system, that's the lifetime of the view
+pub type HierarchyStoragesMut<'a, 'b, T> = (&'a mut EntitiesViewMut<'b>, &'a mut ViewMut<'b, Parent<T>>, &'a mut ViewMut<'b, Child<T>>);
 
 // detach an entity from the hierarchy.
 // it's not on the trait since it's only for internal use
 // the public api is remove/remove_single 
-pub(crate) fn detach (hierarchy: &mut HierarchyStoragesMut, id: EntityId) {
+// 
+// why 'static? Because I couldn't figure out the right lifetime stuff :P
+// It's not so bad though because components MUST own their data
+pub(crate) fn detach<T: 'static>(hierarchy: &mut HierarchyStoragesMut<T>, id: EntityId) {
     let (_, parent_storage, child_storage) = hierarchy;
 
     // remove the Child component - if nonexistent, do nothing
@@ -57,7 +63,7 @@ pub(crate) fn detach (hierarchy: &mut HierarchyStoragesMut, id: EntityId) {
     }
 }
 
-impl HierarchyMut for HierarchyStoragesMut<'_, '_> {
+impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
     fn attach(&mut self, id: EntityId, parent: EntityId) {
         detach(self, id);
 
@@ -78,25 +84,18 @@ impl HierarchyMut for HierarchyStoragesMut<'_, '_> {
             child_storage[next].prev = id;
 
             // add the Child component to the new entity
-            entities.add_component(&mut **child_storage, Child { parent, prev, next }, id);
+            entities.add_component(&mut **child_storage, Child::new(parent, prev, next), id);
         } else {
             // in this case our designated parent is missing a Parent component
             // we don't need to change any links, just insert both components
             entities.add_component(
                 &mut **child_storage,
-                Child {
-                    parent,
-                    prev: id,
-                    next: id,
-                },
+                Child::new(parent,id,id),
                 id,
             );
             entities.add_component(
                 &mut **parent_storage,
-                Parent {
-                    num_children: 1,
-                    first_child: id,
-                },
+                Parent::new(1, id),
                 parent,
             );
         }
@@ -159,7 +158,11 @@ impl HierarchyMut for HierarchyStoragesMut<'_, '_> {
 fn test_detach() {
     let world = World::new();
 
-    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent>, ViewMut<Child>)>();
+    //The type of the hierarchy
+    //not the type of the data in the hierarchy
+    struct PlaceHolder {}
+
+    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<PlaceHolder>>, ViewMut<Child<PlaceHolder>>)>();
 
     let root1 = storages.0.add_entity((), ());
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);

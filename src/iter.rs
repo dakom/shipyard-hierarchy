@@ -7,9 +7,9 @@ pub struct ChildrenIter<C> {
     pub cursor: (EntityId, usize),
 }
 
-impl<'a, C> Iterator for ChildrenIter<C>
+impl<'a, C, T: 'a> Iterator for ChildrenIter<C>
 where
-    C: Get<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
 {
     type Item = EntityId;
 
@@ -31,9 +31,9 @@ pub struct AncestorIter<C> {
     pub cursor: EntityId,
 }
 
-impl<'a, C> Iterator for AncestorIter<C>
+impl<'a, C, T: 'a> Iterator for AncestorIter<C>
 where
-    C: Get<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
 {
     type Item = EntityId;
 
@@ -51,10 +51,10 @@ pub struct DescendantsDepthFirstIter<P, C> {
     pub cursors: Vec<(EntityId, usize)>,
 }
 
-impl<'a, P, C> Iterator for DescendantsDepthFirstIter<P, C>
+impl<'a, P, C, T: 'a> Iterator for DescendantsDepthFirstIter<P, C>
 where
-    P: Get<Out = &'a Parent> + Copy,
-    C: Get<Out = &'a Child> + Copy,
+    P: Get<Out = &'a Parent<T>> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
 {
     type Item = EntityId;
 
@@ -88,10 +88,10 @@ pub struct DescendantsBreadthFirstIter<P, C> {
     pub cursors: VecDeque<(EntityId, usize)>,
 }
 
-impl<'a, P, C> Iterator for DescendantsBreadthFirstIter<P, C>
+impl<'a, P, C, T: 'a> Iterator for DescendantsBreadthFirstIter<P, C>
 where
-    P: Get<Out = &'a Parent> + Copy,
-    C: Get<Out = &'a Child> + Copy,
+    P: Get<Out = &'a Parent<T>> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
 {
     type Item = EntityId;
 
@@ -127,10 +127,10 @@ pub trait HierarchyIter<'a, P, C>
     fn descendants_breadth_first(&self, id: EntityId) -> DescendantsBreadthFirstIter<P, C>;
 }
 
-impl<'a, P, C> HierarchyIter<'a, P, C> for (P, C)
+impl<'a, P, C, T: 'a> HierarchyIter<'a, P, C> for (P, C)
 where
-    P: Get<Out = &'a Parent> + Copy,
-    C: Get<Out = &'a Child> + Copy,
+    P: Get<Out = &'a Parent<T>> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
     //<P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
     //<C as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
 {

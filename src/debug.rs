@@ -13,17 +13,17 @@ use super::*;
     Seems to work so far though!
 */
 
-pub trait HierarchyIterDebug<'a, P, C> 
+pub trait HierarchyIterDebug<'a, P, C, T> 
 {
     fn debug_tree<F>(&'a self, root: EntityId, get_label:F) -> DebugHierarchyTree<'a, P, C, F>
         where F: Fn(EntityId) -> String;
 }
 
-impl<'a, P, C> HierarchyIterDebug<'a, P, C> for (P, C)
+impl<'a, P, C, T: 'a> HierarchyIterDebug<'a, P, C, T> for (P, C)
 where
-    P: Get<Out = &'a Parent> + Copy + IntoIter,
+    P: Get<Out = &'a Parent<T>> + Copy + IntoIter,
     <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
-    C: Get<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
 {
     fn debug_tree<F>(&'a self, root: EntityId, get_label:F) -> DebugHierarchyTree<'a, P, C, F> 
         where F: Fn(EntityId) -> String 
@@ -35,11 +35,11 @@ where
 pub struct DebugHierarchyTree<'a, P, C, F>(&'a (P, C), EntityId, F)
     where F: Fn(EntityId) -> String;
 
-impl<'a, P, C, F> std::fmt::Debug for DebugHierarchyTree<'a, P, C, F>
+impl<'a, P, C, F, T: 'a> std::fmt::Debug for DebugHierarchyTree<'a, P, C, F>
 where
-    P: Get<Out = &'a Parent> + Copy + IntoIter,
+    P: Get<Out = &'a Parent<T>> + Copy + IntoIter,
     <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
-    C: Get<Out = &'a Child> + Copy,
+    C: Get<Out = &'a Child<T>> + Copy,
     F: Fn(EntityId) -> String 
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
