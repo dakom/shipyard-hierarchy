@@ -18,7 +18,7 @@ where
         if *num_children > 0 {
             *num_children -= 1;
             let ret = *entity;
-            self.cursor.0 = self.child_storage.try_get(ret).unwrap().next;
+            self.cursor.0 = self.child_storage.get(ret).unwrap().next;
             Some(ret)
         } else {
             None
@@ -38,7 +38,7 @@ where
     type Item = EntityId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.child_storage.try_get(self.cursor).ok().map(|child| {
+        self.child_storage.get(self.cursor).ok().map(|child| {
             self.cursor = child.parent;
             child.parent
         })
@@ -66,9 +66,9 @@ where
 
                 let ret = *entity;
 
-                *entity = self.child_storage.try_get(ret).unwrap().next;
+                *entity = self.child_storage.get(ret).unwrap().next;
 
-                if let Ok(parent) = self.parent_storage.try_get(ret) {
+                if let Ok(parent) = self.parent_storage.get(ret) {
                     self.cursors.push((parent.first_child, parent.num_children));
                 }
                 Some(ret)
@@ -103,9 +103,9 @@ where
 
                 let ret = *entity;
 
-                *entity = self.child_storage.try_get(ret).unwrap().next;
+                *entity = self.child_storage.get(ret).unwrap().next;
 
-                if let Ok(parent) = self.parent_storage.try_get(ret) {
+                if let Ok(parent) = self.parent_storage.get(ret) {
                     self.cursors.push_back((parent.first_child, parent.num_children));
                 }
                 Some(ret)
@@ -147,7 +147,7 @@ where
         ChildrenIter {
             child_storage,
             cursor: parent_storage
-                .try_get(id)
+                .get(id)
                 .map_or((id, 0), |parent| (parent.first_child, parent.num_children)),
         }
     }
@@ -157,7 +157,7 @@ where
         DescendantsDepthFirstIter {
             parent_storage,
             child_storage,
-            cursors: parent_storage.try_get(id).map_or_else(|_| Vec::new(), |parent| {
+            cursors: parent_storage.get(id).map_or_else(|_| Vec::new(), |parent| {
                 vec![(parent.first_child, parent.num_children)]
             }),
         }
@@ -168,7 +168,7 @@ where
             parent_storage,
             child_storage,
             cursors: parent_storage
-                .try_get(id)
+                .get(id)
                 .map_or_else(|_| VecDeque::new(), |parent| {
                     let mut queue = VecDeque::new();
                     queue.push_front((parent.first_child, parent.num_children));

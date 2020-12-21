@@ -71,7 +71,7 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
         // the entity we want to attach might already be attached to another parent
 
         // either the designated parent already has a Parent component – and thus one or more children
-        if let Ok(p) = parent_storage.try_get(parent) {
+        if let Ok(mut p) = parent_storage.get(parent) {
             // increase the parent's children counter
             p.num_children += 1;
 
@@ -84,19 +84,19 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
             child_storage[next].prev = id;
 
             // add the Child component to the new entity
-            entities.add_component(&mut **child_storage, Child::new(parent, prev, next), id);
+            entities.add_component(id, &mut **child_storage, Child::new(parent, prev, next));
         } else {
             // in this case our designated parent is missing a Parent component
             // we don't need to change any links, just insert both components
             entities.add_component(
+                id,
                 &mut **child_storage,
                 Child::new(parent,id,id),
-                id,
             );
             entities.add_component(
+                parent,
                 &mut **parent_storage,
                 Parent::new(1, id),
-                parent,
             );
         }
     }
@@ -162,7 +162,7 @@ fn test_detach() {
     //not the type of the data in the hierarchy
     struct PlaceHolder {}
 
-    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<PlaceHolder>>, ViewMut<Child<PlaceHolder>>)>();
+    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<PlaceHolder>>, ViewMut<Child<PlaceHolder>>)>().unwrap();
 
     let root1 = storages.0.add_entity((), ());
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);

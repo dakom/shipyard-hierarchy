@@ -22,7 +22,7 @@ pub trait HierarchyIterDebug<'a, P, C, T>
 impl<'a, P, C, T: 'a> HierarchyIterDebug<'a, P, C, T> for (P, C)
 where
     P: Get<Out = &'a Parent<T>> + Copy + IntoIter,
-    <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
+    <P as IntoIter>::IntoIter: IntoWithId,
     C: Get<Out = &'a Child<T>> + Copy,
 {
     fn debug_tree<F>(&'a self, root: EntityId, get_label:F) -> DebugHierarchyTree<'a, P, C, F> 
@@ -38,7 +38,7 @@ pub struct DebugHierarchyTree<'a, P, C, F>(&'a (P, C), EntityId, F)
 impl<'a, P, C, F, T: 'a> std::fmt::Debug for DebugHierarchyTree<'a, P, C, F>
 where
     P: Get<Out = &'a Parent<T>> + Copy + IntoIter,
-    <P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
+    <P as IntoIter>::IntoIter: IntoWithId,
     C: Get<Out = &'a Child<T>> + Copy,
     F: Fn(EntityId) -> String 
 {
@@ -64,7 +64,7 @@ where
 
         write!(f, "{}\n", get_label(root))?;
         for entity_id in (parent_storage, child_storage).descendants_depth_first(root) {
-            let parent = child_storage.try_get(entity_id).unwrap().parent;
+            let parent = child_storage.get(entity_id).unwrap().parent;
             if !depth_map.contains_key(&parent) {
                 depth += 1;
                 depth_map.insert(parent, depth);

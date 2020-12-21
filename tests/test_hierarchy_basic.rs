@@ -8,7 +8,7 @@ struct MyTree {}
 fn test_hierarchy() {
     let world = World::new();
 
-    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>();
+    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>().unwrap();
 
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);
 
@@ -58,7 +58,7 @@ fn test_hierarchy() {
 fn test_sorting_depth_first() {
     let world = World::new();
 
-    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>), ViewMut<usize>)>();
+    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>), ViewMut<usize>)>().unwrap();
 
     let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
 
@@ -75,11 +75,11 @@ fn test_sorting_depth_first() {
 
     {
         let entities = &mut hierarchy.0;
-        entities.add_component(&mut usizes, 7, e0);
-        entities.add_component(&mut usizes, 5, e1);
-        entities.add_component(&mut usizes, 6, e2);
-        entities.add_component(&mut usizes, 1, e3);
-        entities.add_component(&mut usizes, 3, e4);
+        entities.add_component(e0, &mut usizes, 7);
+        entities.add_component(e1, &mut usizes, 5);
+        entities.add_component(e2, &mut usizes, 6);
+        entities.add_component(e3, &mut usizes, 1);
+        entities.add_component(e4, &mut usizes, 3);
     }
 
     {
@@ -139,7 +139,7 @@ fn create_world_tree() -> (World, TestEntities, HashMap<EntityId, &'static str>)
     let mut labels = HashMap::<EntityId, &'static str>::new();
 
     let entities = {
-        let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>();
+        let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>().unwrap();
 
         let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
         let entities = &mut hierarchy.0;
@@ -191,7 +191,7 @@ fn test_hierarchy_tree() {
     let (world, (root, a,b,c,d,e,f,g,h,i,j,k,l,m,n), _) = create_world_tree();
 
     {
-        let (parent_storage, child_storage) = world.borrow::<(View<Parent<MyTree>>, View<Child<MyTree>>)>();
+        let (parent_storage, child_storage) = world.borrow::<(View<Parent<MyTree>>, View<Child<MyTree>>)>().unwrap();
 
         let storages = (&parent_storage, &child_storage);
         assert!(storages.descendants_depth_first(root).eq([a,d,h,l,i,e,b,c,f,g,j,m,n,k].iter().cloned()));
@@ -204,7 +204,7 @@ fn test_hierarchy_tree() {
 fn test_debug_print() {
     let world = World::new();
 
-    let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>();
+    let mut hierarchy = world.borrow::<(EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>)>().unwrap();
 
     let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
     let entities = &mut hierarchy.0;
@@ -232,7 +232,7 @@ fn test_debug_print() {
 
     {
 
-        let (parent_storage, child_storage) = world.borrow::<(View<Parent<MyTree>>, View<Child<MyTree>>)>();
+        let (parent_storage, child_storage) = world.borrow::<(View<Parent<MyTree>>, View<Child<MyTree>>)>().unwrap();
         let storages = (&parent_storage, &child_storage);
         assert_eq!(EXPECTED_DEBUG_TREE_2, format!("{:?}", storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string())));
         //println!("{:?}", storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string()));
@@ -240,15 +240,15 @@ fn test_debug_print() {
 }
 
 const EXPECTED_DEBUG_TREE_1:&'static str = 
-r#"EntityId { index: 0, version: 0 }
-  EntityId { index: 1, version: 0 }
-    EntityId { index: 3, version: 0 }
-    EntityId { index: 4, version: 0 }
-  EntityId { index: 2, version: 0 }
-    EntityId { index: 5, version: 0 }
-      EntityId { index: 7, version: 0 }
-    EntityId { index: 6, version: 0 }
-      EntityId { index: 8, version: 0 }
+r#"EntityId { index: 0, gen: 0 }
+  EntityId { index: 1, gen: 0 }
+    EntityId { index: 3, gen: 0 }
+    EntityId { index: 4, gen: 0 }
+  EntityId { index: 2, gen: 0 }
+    EntityId { index: 5, gen: 0 }
+      EntityId { index: 7, gen: 0 }
+    EntityId { index: 6, gen: 0 }
+      EntityId { index: 8, gen: 0 }
 "#;
 
 const EXPECTED_DEBUG_TREE_2:&'static str =
