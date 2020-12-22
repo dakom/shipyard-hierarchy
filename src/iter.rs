@@ -131,8 +131,6 @@ impl<'a, P, C, T: 'a> HierarchyIter<'a, P, C> for (P, C)
 where
     P: Get<Out = &'a Parent<T>> + Copy,
     C: Get<Out = &'a Child<T>> + Copy,
-    //<P as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
-    //<C as IntoIter>::IntoIter: Shiperator + CurrentId<Id = EntityId>,
 {
     fn ancestors(&self, id: EntityId) -> AncestorIter<C> {
         let (_, child_storage) = *self;
