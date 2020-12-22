@@ -18,8 +18,13 @@ where
         if *num_children > 0 {
             *num_children -= 1;
             let ret = *entity;
-            self.cursor.0 = self.child_storage.get(ret).unwrap().next;
-            Some(ret)
+
+            if let Ok(cursor) = self.child_storage.get(ret) {
+                self.cursor.0 = cursor.next;
+                Some(ret)
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -66,8 +71,11 @@ where
 
                 let ret = *entity;
 
-                *entity = self.child_storage.get(ret).unwrap().next;
-
+                if let Ok(child) = self.child_storage.get(ret) {
+                    *entity = child.next;
+                } else {
+                    return None;
+                }
                 if let Ok(parent) = self.parent_storage.get(ret) {
                     self.cursors.push((parent.first_child, parent.num_children));
                 }
@@ -103,7 +111,11 @@ where
 
                 let ret = *entity;
 
-                *entity = self.child_storage.get(ret).unwrap().next;
+                if let Ok(child) = self.child_storage.get(ret) {
+                    *entity = child.next;
+                } else {
+                    return None;
+                }
 
                 if let Ok(parent) = self.parent_storage.get(ret) {
                     self.cursors.push_back((parent.first_child, parent.num_children));
