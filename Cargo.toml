@@ -12,8 +12,8 @@ repository = "https://github.com/dakom/shipyard-hierarchy"
 
 [dependencies]
 
+#SOON: shipyard = { version = "^0.5", default-features = false}
 shipyard = { git = "https://github.com/leudz/shipyard", branch = "no-panic-feature", default-features = false }
-# shipyard = { version = "^0.5", default-features = false}
 
 [features]
 default = ["shipyard/default"]
