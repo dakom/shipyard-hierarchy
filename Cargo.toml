@@ -1,6 +1,6 @@
 [package]
 name = "shipyard_hierarchy"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["David Komer <david.komer@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -20,4 +20,5 @@ default = ["shipyard/default"]
 parallel = ["shipyard/parallel"]
 non_send = ["shipyard/non_send"]
 non_sync = ["shipyard/non_sync"]
+wasm = ["shipyard/wasm"]
 std = ["shipyard/std"]
