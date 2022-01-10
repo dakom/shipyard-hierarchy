@@ -7,6 +7,12 @@ pub struct Parent <T>{
     marker: PhantomData<T>
 }
 
+impl <T> Component for Parent<T> where T: 'static {
+
+    // TODO: #HIGH Uncertain what kind of tracking this needs. Same for Child
+    type Tracking = track::All;
+}
+
 impl <T> Parent<T> {
     pub fn new(num_children: usize, first_child: EntityId) -> Self {
         Self {
@@ -22,6 +28,11 @@ pub struct Child <T>{
     pub prev: EntityId,
     pub next: EntityId,
     marker: PhantomData<T>
+}
+
+impl <T> Component for Child<T> where T: 'static {
+
+    type Tracking = track::All;
 }
 
 impl <T> Child <T> {

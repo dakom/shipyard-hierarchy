@@ -1,3 +1,7 @@
+
+#[cfg(test)]
+mod tests {
+
 use shipyard::*;
 use shipyard_hierarchy::*;
 use std::collections::HashMap;
@@ -53,12 +57,18 @@ fn test_hierarchy() {
     }
 }
 
-
 #[test]
 fn test_sorting_depth_first() {
+
+    #[derive(PartialEq, Eq, Debug, PartialOrd, Ord)]
+    struct USIZE(usize);
+    impl Component for USIZE {
+        type Tracking = track::Untracked;
+    }
+
     let world = World::new();
 
-    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>), ViewMut<usize>)>().unwrap();
+    let (mut hierarchy, mut usizes) = world.borrow::<((EntitiesViewMut, ViewMut<Parent<MyTree>>, ViewMut<Child<MyTree>>), ViewMut<USIZE>)>().unwrap();
 
     let mut hierarchy = (&mut hierarchy.0, &mut hierarchy.1, &mut hierarchy.2);
 
@@ -75,11 +85,11 @@ fn test_sorting_depth_first() {
 
     {
         let entities = &mut hierarchy.0;
-        entities.add_component(e0, &mut usizes, 7);
-        entities.add_component(e1, &mut usizes, 5);
-        entities.add_component(e2, &mut usizes, 6);
-        entities.add_component(e3, &mut usizes, 1);
-        entities.add_component(e4, &mut usizes, 3);
+        entities.add_component(e0, &mut usizes, USIZE(7));
+        entities.add_component(e1, &mut usizes, USIZE(5));
+        entities.add_component(e2, &mut usizes, USIZE(6));
+        entities.add_component(e3, &mut usizes, USIZE(1));
+        entities.add_component(e4, &mut usizes, USIZE(3));
     }
 
     {
@@ -239,16 +249,17 @@ fn test_debug_print() {
     }
 }
 
+// TODO: Consider future proofing the expected syntax here as EntityId's Debug syntax has changed and may change again.
 const EXPECTED_DEBUG_TREE_1:&'static str = 
-r#"EntityId { index: 0, gen: 0 }
-  EntityId { index: 1, gen: 0 }
-    EntityId { index: 3, gen: 0 }
-    EntityId { index: 4, gen: 0 }
-  EntityId { index: 2, gen: 0 }
-    EntityId { index: 5, gen: 0 }
-      EntityId { index: 7, gen: 0 }
-    EntityId { index: 6, gen: 0 }
-      EntityId { index: 8, gen: 0 }
+r#"EId(0.0)
+  EId(1.0)
+    EId(3.0)
+    EId(4.0)
+  EId(2.0)
+    EId(5.0)
+      EId(7.0)
+    EId(6.0)
+      EId(8.0)
 "#;
 
 const EXPECTED_DEBUG_TREE_2:&'static str =
@@ -268,3 +279,5 @@ r#"root
           n
       k
 "#;
+
+}

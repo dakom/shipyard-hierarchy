@@ -1,8 +1,8 @@
 [package]
 name = "shipyard_hierarchy"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["David Komer <david.komer@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Hierarchy for Shipyard Entity Component System"
 keywords = ["ecs", "entity", "component", "hierarchy"]
@@ -13,12 +13,12 @@ repository = "https://github.com/dakom/shipyard-hierarchy"
 [dependencies]
 
 #SOON: shipyard = { version = "^0.5", default-features = false}
-shipyard = { git = "https://github.com/leudz/shipyard", default-features = false }
+[dependencies.shipyard]
+git = "https://github.com/leudz/shipyard"
+default-features = false
 
-[features]
-default = ["shipyard/default"]
-parallel = ["shipyard/parallel"]
-non_send = ["shipyard/non_send"]
-non_sync = ["shipyard/non_sync"]
-wasm = ["shipyard/wasm"]
-std = ["shipyard/std"]
+[dev-dependencies.shipyard]
+git = "https://github.com/leudz/shipyard"
+default-features = false
+# Required for hierarchy tests that use World::new
+features = ["std"]
