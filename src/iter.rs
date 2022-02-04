@@ -1,6 +1,6 @@
+use super::*;
 use shipyard::*;
 use std::collections::VecDeque;
-use super::*;
 
 pub struct ChildrenIter<C> {
     pub child_storage: C,
@@ -118,7 +118,8 @@ where
                 }
 
                 if let Ok(parent) = self.parent_storage.get(ret) {
-                    self.cursors.push_back((parent.first_child, parent.num_children));
+                    self.cursors
+                        .push_back((parent.first_child, parent.num_children));
                 }
                 Some(ret)
             } else {
@@ -131,8 +132,7 @@ where
     }
 }
 
-pub trait HierarchyIter<'a, P, C> 
-{
+pub trait HierarchyIter<'a, P, C> {
     fn ancestors(&self, id: EntityId) -> AncestorIter<C>;
     fn children(&self, id: EntityId) -> ChildrenIter<C>;
     fn descendants_depth_first(&self, id: EntityId) -> DescendantsDepthFirstIter<P, C>;
@@ -167,9 +167,10 @@ where
         DescendantsDepthFirstIter {
             parent_storage,
             child_storage,
-            cursors: parent_storage.get(id).map_or_else(|_| Vec::new(), |parent| {
-                vec![(parent.first_child, parent.num_children)]
-            }),
+            cursors: parent_storage.get(id).map_or_else(
+                |_| Vec::new(),
+                |parent| vec![(parent.first_child, parent.num_children)],
+            ),
         }
     }
     fn descendants_breadth_first(&self, id: EntityId) -> DescendantsBreadthFirstIter<P, C> {
@@ -177,13 +178,14 @@ where
         DescendantsBreadthFirstIter {
             parent_storage,
             child_storage,
-            cursors: parent_storage
-                .get(id)
-                .map_or_else(|_| VecDeque::new(), |parent| {
+            cursors: parent_storage.get(id).map_or_else(
+                |_| VecDeque::new(),
+                |parent| {
                     let mut queue = VecDeque::new();
                     queue.push_front((parent.first_child, parent.num_children));
                     queue
-                }),
+                },
+            ),
         }
     }
 }

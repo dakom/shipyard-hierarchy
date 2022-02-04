@@ -1,13 +1,13 @@
 //Mostly copy/paste from https://leudz.github.io/shipyard/book/recipes/hierarchy.html
-mod iter;
-mod debug;
 mod components;
+mod debug;
+mod iter;
 
 use shipyard::*;
 
-pub use self::iter::*;
-pub use self::debug::*;
 pub use self::components::*;
+pub use self::debug::*;
+pub use self::iter::*;
 
 pub trait HierarchyMut<T> {
     // Attaches an entity as a child to a given parent entity.
@@ -21,21 +21,25 @@ pub trait HierarchyMut<T> {
 
     // Removes a subtree from the hierarchy
     fn remove(&mut self, id: EntityId);
-    
-    fn sort_children_by<F>(&mut self, id: EntityId, compare: F) 
-        where F: FnMut(&EntityId, &EntityId) -> std::cmp::Ordering;
-}
 
+    fn sort_children_by<F>(&mut self, id: EntityId, compare: F)
+    where
+        F: FnMut(&EntityId, &EntityId) -> std::cmp::Ordering;
+}
 
 //the storages we'll impl Hierarchy on
 // 'a is the reference of the view you take to make HierarchyStorageMut
 // 'b is the scope of the system, that's the lifetime of the view
-pub type HierarchyStoragesMut<'a, 'b, T> = (&'a mut EntitiesViewMut<'b>, &'a mut ViewMut<'b, Parent<T>>, &'a mut ViewMut<'b, Child<T>>);
+pub type HierarchyStoragesMut<'a, 'b, T> = (
+    &'a mut EntitiesViewMut<'b>,
+    &'a mut ViewMut<'b, Parent<T>>,
+    &'a mut ViewMut<'b, Child<T>>,
+);
 
 // detach an entity from the hierarchy.
 // it's not on the trait since it's only for internal use
-// the public api is remove/remove_single 
-// 
+// the public api is remove/remove_single
+//
 // why 'static? Because I couldn't figure out the right lifetime stuff :P
 // It's not so bad though because components MUST own their data
 pub(crate) fn detach<T: 'static>(hierarchy: &mut HierarchyStoragesMut<T>, id: EntityId) {
@@ -63,7 +67,7 @@ pub(crate) fn detach<T: 'static>(hierarchy: &mut HierarchyStoragesMut<T>, id: En
     }
 }
 
-impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
+impl<T: 'static> HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
     fn attach(&mut self, id: EntityId, parent: EntityId) {
         detach(self, id);
 
@@ -88,16 +92,8 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
         } else {
             // in this case our designated parent is missing a Parent component
             // we don't need to change any links, just insert both components
-            entities.add_component(
-                id,
-                &mut **child_storage,
-                Child::new(parent,id,id),
-            );
-            entities.add_component(
-                parent,
-                &mut **parent_storage,
-                Parent::new(1, id),
-            );
+            entities.add_component(id, &mut **child_storage, Child::new(parent, id, id));
+            entities.add_component(parent, &mut **parent_storage, Parent::new(1, id));
         }
     }
 
@@ -108,12 +104,13 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
         id
     }
 
-
     fn remove_single(&mut self, id: EntityId) {
         detach(self, id);
 
         let (_, parent_storage, child_storage) = self;
-        let children = (&**parent_storage, &**child_storage).children(id).collect::<Vec<_>>();
+        let children = (&**parent_storage, &**child_storage)
+            .children(id)
+            .collect::<Vec<_>>();
         for child_id in children {
             detach(self, child_id);
         }
@@ -122,22 +119,25 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
         parent_storage.remove(id);
     }
 
-
     fn remove(&mut self, id: EntityId) {
         let (_, parent_storage, child_storage) = self;
-        for child_id in (&**parent_storage, &**child_storage).children(id).collect::<Vec<_>>() {
+        for child_id in (&**parent_storage, &**child_storage)
+            .children(id)
+            .collect::<Vec<_>>()
+        {
             self.remove(child_id);
         }
         self.remove_single(id);
     }
-
 
     fn sort_children_by<F>(&mut self, id: EntityId, mut compare: F)
     where
         F: FnMut(&EntityId, &EntityId) -> std::cmp::Ordering,
     {
         let (_, parent_storage, child_storage) = self;
-        let mut children = (&**parent_storage, &**child_storage).children(id).collect::<Vec<EntityId>>();
+        let mut children = (&**parent_storage, &**child_storage)
+            .children(id)
+            .collect::<Vec<EntityId>>();
         if children.len() > 1 {
             children.sort_by(|a, b| compare(a, b));
             // set first_child in Parent component
@@ -153,7 +153,6 @@ impl <T: 'static>HierarchyMut<T> for HierarchyStoragesMut<'_, '_, T> {
     }
 }
 
-
 #[test]
 fn test_detach() {
     let world = World::new();
@@ -162,7 +161,13 @@ fn test_detach() {
     //not the type of the data in the hierarchy
     struct PlaceHolder {}
 
-    let mut storages = world.borrow::<(EntitiesViewMut, ViewMut<Parent<PlaceHolder>>, ViewMut<Child<PlaceHolder>>)>().unwrap();
+    let mut storages = world
+        .borrow::<(
+            EntitiesViewMut,
+            ViewMut<Parent<PlaceHolder>>,
+            ViewMut<Child<PlaceHolder>>,
+        )>()
+        .unwrap();
 
     let root1 = storages.0.add_entity((), ());
     let mut hierarchy = (&mut storages.0, &mut storages.1, &mut storages.2);
@@ -176,6 +181,5 @@ fn test_detach() {
         assert!(storages.descendants_depth_first(root1).eq(None));
         assert!(storages.ancestors(e1).eq(None));
         assert!(storages.children(e1).eq([e2].iter().cloned()));
-
     }
 }
