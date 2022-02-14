@@ -11,8 +11,7 @@ impl<T> Component for Parent<T>
 where
     T: 'static,
 {
-    // TODO: #HIGH Uncertain what kind of tracking this needs. Same for Child
-    type Tracking = track::All;
+    type Tracking = track::Untracked;
 }
 
 impl<T> Parent<T> {
@@ -36,7 +35,7 @@ impl<T> Component for Child<T>
 where
     T: 'static,
 {
-    type Tracking = track::All;
+    type Tracking = track::Untracked;
 }
 
 impl<T> Child<T> {

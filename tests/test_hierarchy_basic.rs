@@ -283,8 +283,11 @@ mod tests {
                 .borrow::<(View<Parent<MyTree>>, View<Child<MyTree>>)>()
                 .unwrap();
             let storages = (&parent_storage, &child_storage);
-            
-            println!("{:?}", storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string()));
+
+            println!(
+                "{:?}",
+                storages.debug_tree(entities.0, |e| labels.get(&e).unwrap().to_string())
+            );
             assert_eq!(
                 EXPECTED_DEBUG_TREE_2,
                 format!(
@@ -296,8 +299,7 @@ mod tests {
     }
 
     // TODO: Consider future proofing the expected syntax here as EntityId's Debug syntax has changed and may change again.
-const EXPECTED_DEBUG_TREE_1:&'static str = 
-r#"EId(0.0)
+    const EXPECTED_DEBUG_TREE_1: &'static str = r#"EId(0.0)
   EId(1.0)
     EId(3.0)
     EId(4.0)
@@ -308,8 +310,7 @@ r#"EId(0.0)
       EId(8.0)
 "#;
 
-const EXPECTED_DEBUG_TREE_2:&'static str =
-r#"root
+    const EXPECTED_DEBUG_TREE_2: &'static str = r#"root
   a
     d
       h
