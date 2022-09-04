@@ -11,14 +11,7 @@ readme = "README.md"
 repository = "https://github.com/dakom/shipyard-hierarchy"
 
 [dependencies]
+shipyard = { version = "^0.6", default-features = false }
 
-#SOON: shipyard = { version = "^0.5", default-features = false}
-[dependencies.shipyard]
-git = "https://github.com/leudz/shipyard"
-default-features = false
-
-[dev-dependencies.shipyard]
-git = "https://github.com/leudz/shipyard"
-default-features = false
-# Required for hierarchy tests that use World::new
-features = ["std"]
+[dev-dependencies]
+shipyard = { version = "^0.6", default-features = false, features=["std"] }
